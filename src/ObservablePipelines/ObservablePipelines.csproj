@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <Authors>Tobias Streng</Authors>
+	  <Description>Build pipelines with observables</Description>
+	  <Copyright>Copyright Tobias Streng</Copyright>
+	  <TargetFrameworks>netstandard2.1</TargetFrameworks>
+	  <Nullable>enable</Nullable>
+	  <Features>strict</Features>
+	  <PackageTags>observable;pipeline;pipe;architecture;clean</PackageTags>
+	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>
