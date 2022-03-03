@@ -1,23 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B0EB0213-EF60-4F8E-8723-78572002C8D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObservablePipelines", "src\ObservablePipelines\ObservablePipelines.csproj", "{D06BBCED-45F3-4E2C-A9BD-079C261F99EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObservablePipelines", "src\ObservablePipelines\ObservablePipelines.csproj", "{D06BBCED-45F3-4E2C-A9BD-079C261F99EA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{C2A1FB9F-B486-49BF-B9B3-A80570EAF063}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObservablePipelines.Test", "test\ObservablePipelines.Test\ObservablePipelines.Test.csproj", "{2E131930-1D9F-44C3-BF73-D8A4F122DB6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObservablePipelines.Test", "test\ObservablePipelines.Test\ObservablePipelines.Test.csproj", "{2E131930-1D9F-44C3-BF73-D8A4F122DB6D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AEF0F3A8-6607-4142-9D8A-2A3263542178}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D06BBCED-45F3-4E2C-A9BD-079C261F99EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -29,8 +31,14 @@ Global
 		{2E131930-1D9F-44C3-BF73-D8A4F122DB6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E131930-1D9F-44C3-BF73-D8A4F122DB6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D06BBCED-45F3-4E2C-A9BD-079C261F99EA} = {B0EB0213-EF60-4F8E-8723-78572002C8D1}
 		{2E131930-1D9F-44C3-BF73-D8A4F122DB6D} = {C2A1FB9F-B486-49BF-B9B3-A80570EAF063}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A0A27298-4DC0-4343-AC7E-C73190755123}
 	EndGlobalSection
 EndGlobal
