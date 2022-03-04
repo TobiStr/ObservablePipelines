@@ -1,19 +1,115 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
+using Moq;
 using NUnit.Framework;
+using ObservablePipelines.Test.ShowCase.Abstractions;
+using ObservablePipelines.Test.ShowCase.Model;
+using ObservablePipelines.Test.ShowCase.Pipes;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace ObservablePipelines.Test.ShowCase
 {
     [TestFixture]
     internal class ShowCase
     {
-        private IServiceCollection
+        private IPipelineBuilder pipelineBuilder;
+
+        private IObservable<ChatMessage> chatMessages;
+
+        private ILogger<ShowCase> logger;
 
         [SetUp]
+        public void SetUp() {
+            var services = new ServiceCollection();
 
-        private void Setup() {
+            ConfigureServices(services);
+
+            var serviceProvider = services
+                .BuildServiceProvider();
+
+            pipelineBuilder = serviceProvider
+                .GetRequiredService<IPipelineBuilder>();
+
+            logger = serviceProvider
+                .GetRequiredService<ILogger<ShowCase>>();
+
+            chatMessages = GetTestMessages().ToObservable();
+        }
+
+        private void ConfigureServices(IServiceCollection services) {
+            var userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.SetReturnsDefault("TestSender");
+
+            services
+                .AddLogging(builder => builder
+                    .AddConsole()
+                    .AddDebug()
+                );
+
+            services
+                .AddObservablePipelines()
+                .AddTransient(_ => userRepositoryMock.Object)
+                ;
+        }
+
+        [Test]
+        public async Task TestShowCase() {
+            var pipeline = pipelineBuilder
+                .Configure(builder => builder
+                    .Add(new MessageFilterPipeOptions(Guid.Empty))
+                )
+                .Construct(builder => builder
+                    .AddSource(chatMessages)
+                    .Pipe<LoggerPipe, ChatMessage>()
+                    .Pipe<MessageFilterPipe, ChatMessage>()
+                    .Pipe<MessageTransformPipe, IdentifiedChatMessage>()
+                )
+                .Build();
+
+            pipeline.Subscribe(m =>
+                logger.LogInformation($"New Message from {m.SenderName}: {m.Message}.")
+            );
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            //Output:
+            //Pipes.LoggerPipe: Information: Pipeline triggered for message: 'Hello'.
+            //Pipes.MessageFilterPipe: Information: Filter let message: 'Hello' pass through.
+            //Pipes.MessageTransformPipe: Information: Identified sender: 'TestSender'.
+            //ShowCase: Information: New Message from 'TestSender': Hello.
+            //Pipes.LoggerPipe: Information: Pipeline triggered for message: ShouldBeFilteredOut.
+            //Pipes.LoggerPipe: Information: Pipeline triggered for message: How are you?.
+            //Pipes.MessageFilterPipe: Information: Filter let message: 'How are you?' pass through.
+            //Pipes.MessageTransformPipe: Information: Identified sender: 'TestSender'.
+            //ShowCase: Information: New Message from 'TestSender': How are you?.
+        }
+
+        private IEnumerable<ChatMessage> GetTestMessages() {
+            return new ChatMessage[] {
+                new(
+                  Message: "Hello",
+                  SenderId: Guid.NewGuid(),
+                  ReceiverId: Guid.Empty,
+                  SendDate: DateTime.Now
+                ),
+                new(
+                  Message: "ShouldBeFilteredOut",
+                  SenderId: Guid.NewGuid(),
+                  ReceiverId: Guid.NewGuid(),
+                  SendDate: DateTime.Now
+                ),
+                new(
+                  Message: "How are you?",
+                  SenderId: Guid.NewGuid(),
+                  ReceiverId: Guid.Empty,
+                  SendDate: DateTime.Now
+                )
+            };
         }
     }
 }
