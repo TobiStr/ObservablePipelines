@@ -68,6 +68,7 @@ namespace ObservablePipelines.Test.ShowCase
                     .AddStep<LoggerPipe, ChatMessage>()
                     .AddStep<MessageFilterPipe, ChatMessage>()
                     .AddStep<MessageTransformPipe, IdentifiedChatMessage>()
+                    .AddStep(new ConsoleLoggerPipe())
                 )
                 .Build();
 
