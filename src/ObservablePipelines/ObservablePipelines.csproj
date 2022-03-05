@@ -1,14 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <Authors>Tobias Streng</Authors>
-	  <Description>Build pipelines with observables</Description>
-	  <Copyright>Copyright Tobias Streng</Copyright>
 	  <TargetFrameworks>netstandard2.1</TargetFrameworks>
 	  <Nullable>enable</Nullable>
 	  <Features>strict</Features>
+	  <PackageId>ObservablePipelines</PackageId>
+	  <Description>Build pipelines with Observables and Dependency Injection.</Description>
+	  <Authors>Tobias Streng</Authors>
+	  <Copyright>Copyright Tobias Streng</Copyright>
 	  <PackageTags>observable;pipeline;pipe;architecture;clean</PackageTags>
 	  <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
