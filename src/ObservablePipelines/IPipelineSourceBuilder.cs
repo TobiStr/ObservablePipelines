@@ -4,6 +4,6 @@ namespace ObservablePipelines
 {
     public interface IPipelineSourceBuilder
     {
-        IPipelineConstructor<TOut> AddSource<TOut>(IObservable<TOut> source);
+        IPipelineStepBuilder<TOut> AddSource<TOut>(IObservable<TOut> source);
     }
 }

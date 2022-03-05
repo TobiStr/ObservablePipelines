@@ -4,9 +4,14 @@ namespace ObservablePipelines
 {
     public interface IPipelineBuilder
     {
-        IPipelineBuilder Configure(Action<IPipelineConfigurationBuilder> configure);
+        IPipelineBuilder ConfigureOptions(
+            Action<IPipelineConfigurationBuilder> build
+        );
 
-        IPipelineBuilder<TOut> Construct<TOut>(Func<IPipelineSourceBuilder, IPipelineConstructor<TOut>> build);
+        IPipelineBuilder<TOut> ConfigurePipeline<TOut>(
+            Func<IPipelineSourceBuilder,
+            IPipelineStepBuilder<TOut>> build
+        );
     }
 
     public interface IPipelineBuilder<out TOut>

@@ -4,13 +4,13 @@ using System;
 
 namespace ObservablePipelines.Services
 {
-    internal class PipelineConstructor<TIn> : IPipelineConstructor<TIn>
+    internal class PipelineStepBuilder<TIn> : IPipelineStepBuilder<TIn>
     {
         private readonly IServiceCollection serviceCollection;
 
         public IObservable<TIn> Source { get; }
 
-        public PipelineConstructor(
+        public PipelineStepBuilder(
             IObservable<TIn> source,
             IServiceCollection serviceCollection
         ) {
@@ -20,17 +20,17 @@ namespace ObservablePipelines.Services
                 ?? throw new ArgumentNullException(nameof(serviceCollection));
         }
 
-        public IPipelineConstructor<TOut> Pipe<TOut>(IPipe<TIn, TOut> pipe) {
-            return new PipelineConstructor<TOut>(Source.Pipe(pipe), serviceCollection);
-        }
+        public IPipelineStepBuilder<TOut> AddStep<TOut>(IPipe<TIn, TOut> pipe)
+            => new PipelineStepBuilder<TOut>(Source.Pipe(pipe), serviceCollection);
 
-        public IPipelineConstructor<TOut> Pipe<TPipe, TOut>() where TPipe : class, IPipe<TIn, TOut> {
+        public IPipelineStepBuilder<TOut> AddStep<TPipe, TOut>() where TPipe : class, IPipe<TIn, TOut> {
             var serviceProvider = serviceCollection
                 .AddTransient<TPipe>()
                 .BuildServiceProvider();
+
             var pipe = serviceProvider.GetRequiredService<TPipe>();
 
-            return new PipelineConstructor<TOut>(Source.Pipe(pipe), serviceCollection);
+            return new PipelineStepBuilder<TOut>(Source.Pipe(pipe), serviceCollection);
         }
     }
 }

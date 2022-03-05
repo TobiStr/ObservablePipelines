@@ -60,14 +60,14 @@ namespace ObservablePipelines.Test.ShowCase
         [Test]
         public async Task TestShowCase() {
             var pipeline = pipelineBuilder
-                .Configure(builder => builder
+                .ConfigureOptions(builder => builder
                     .Add(new MessageFilterPipeOptions(Guid.Empty))
                 )
-                .Construct(builder => builder
+                .ConfigurePipeline(builder => builder
                     .AddSource(chatMessages)
-                    .Pipe<LoggerPipe, ChatMessage>()
-                    .Pipe<MessageFilterPipe, ChatMessage>()
-                    .Pipe<MessageTransformPipe, IdentifiedChatMessage>()
+                    .AddStep<LoggerPipe, ChatMessage>()
+                    .AddStep<MessageFilterPipe, ChatMessage>()
+                    .AddStep<MessageTransformPipe, IdentifiedChatMessage>()
                 )
                 .Build();
 

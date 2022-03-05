@@ -13,7 +13,7 @@ namespace ObservablePipelines.Services
                 ?? throw new ArgumentNullException(nameof(serviceCollection));
         }
 
-        public IPipelineBuilder Configure(
+        public IPipelineBuilder ConfigureOptions(
             Action<IPipelineConfigurationBuilder> configure
         ) {
             var configurationBuilder = new PipelineConfigurationBuilder(serviceCollection);
@@ -23,12 +23,12 @@ namespace ObservablePipelines.Services
             return new PipelineBuilder(serviceCollection);
         }
 
-        public IPipelineBuilder<TOut> Construct<TOut>(
-            Func<IPipelineSourceBuilder, IPipelineConstructor<TOut>> build
+        public IPipelineBuilder<TOut> ConfigurePipeline<TOut>(
+            Func<IPipelineSourceBuilder, IPipelineStepBuilder<TOut>> build
         ) {
             var sourceBuilder = new PipelineSourceBuilder(serviceCollection);
 
-            var constructor = (PipelineConstructor<TOut>)build(sourceBuilder);
+            var constructor = (PipelineStepBuilder<TOut>)build(sourceBuilder);
 
             return new PipelineBuilder<TOut>(constructor.Source);
         }

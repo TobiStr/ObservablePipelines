@@ -13,7 +13,8 @@ namespace ObservablePipelines.Services
         }
 
         public IPipelineConfigurationBuilder Add<TConfiguration>(TConfiguration configuration)
-            where TConfiguration : class {
+            where TConfiguration : class
+        {
             services.AddSingleton(configuration);
             return this;
         }

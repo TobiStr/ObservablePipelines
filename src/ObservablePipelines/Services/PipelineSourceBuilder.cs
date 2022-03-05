@@ -12,8 +12,7 @@ namespace ObservablePipelines.Services
                 ?? throw new ArgumentNullException(nameof(serviceCollection));
         }
 
-        public IPipelineConstructor<TOut> AddSource<TOut>(IObservable<TOut> source) {
-            return new PipelineConstructor<TOut>(source, serviceCollection);
-        }
+        public IPipelineStepBuilder<TOut> AddSource<TOut>(IObservable<TOut> source)
+            => new PipelineStepBuilder<TOut>(source, serviceCollection);
     }
 }
