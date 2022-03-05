@@ -15,6 +15,9 @@ internal class LoggerPipe : IPipe<ChatMessage, ChatMessage>
     }
 
     public IObservable<ChatMessage> Handle(IObservable<ChatMessage> source) {
-        return source.Do(m => logger.LogInformation($"Pipeline triggered for message: '{m.Message}'."));
+        return source
+            .Do(m =>
+                logger.LogInformation($"Pipeline triggered for message: '{m.Message}'.")
+            );
     }
 }
