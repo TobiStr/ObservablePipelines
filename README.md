@@ -1,10 +1,16 @@
 # ObservablePipelines
 
-A simple .NET package to achieve a clean pipeline architecture with Observables.
+A simple .NET package to achieve a clean pipeline architecture with Observables and injectable pipes.
+
+## When to use
+
+This package is useful in scenarios, where you want to explicitly state what happens step by step. A Pipe would represent the perfect `Single Responsibility Object`, as it will only handle one explicit case, e.g. filtering, or transforming.
+
+Additionally you can construct Pipelines with Dependency Injection, and thus save a lot of construction code and unnecessary dependencies.
 
 ## Introduction
 
-This package contains a few simple interfaces and logic, that allows you to configure and build Pipelines extremely clean, fast and dynamic with `IObservable`'s. The only reference needed is "Microsoft.Extensions.DependencyInjection", as the PipelineBuilder uses this internally to dynamically construct the Pipelines.
+This package contains a few simple interfaces and logic, that allows you to configure and build Pipelines extremely clean, fast and dynamic with Dependency Injection and `IObservable`'s. The only reference needed is "Microsoft.Extensions.DependencyInjection", as the PipelineBuilder uses this internally to dynamically construct the Pipelines.
 
 ```mermaid
   graph LR;
@@ -53,6 +59,10 @@ In the diagram above, you can see the principle of a pipeline. You have a single
 
 Observables are very well suited for this job, as they are already extremly well usable with the package `System.Reactive.Linq`. When using Observables with this package, you are able to handle streams of events with a LINQ like query. They also enable you to filter the event streams. This would not be possible with using `T` instead of `IObservable<T>`, as you would need to return `null` inside a pipe or anything like that.
 
+If you have not yet worked with Observables, I highly recommend checking out this tutorial:
+
+[Introduction to Rx](http://introtorx.com/)
+
 ## Usage
 
 ### 1. Install the package:
@@ -79,18 +89,42 @@ using Microsoft.Extensions.DependencyInjection;
 services.AddObservablePipelines()
 ```
 
-### 4. Inject and use `IPipelineBuilder`
+### 4. Implement `IPipe<TIn, TOut>`
+
+```csharp
+internal class LoggerPipe : IPipe<ChatMessage, ChatMessage>
+{
+    private readonly ILogger<LoggerPipe> logger;
+
+    public LoggerPipe(ILogger<LoggerPipe> logger) {
+        this.logger = logger
+            ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public IObservable<ChatMessage> Handle(IObservable<ChatMessage> source) {
+        return source
+            .Do(m =>
+                logger.LogInformation($"Pipeline triggered for message: '{m.Message}'.")
+            );
+    }
+}
+```
+
+Inside the Pipe, I recommend you to use `System.Reactive.Linq` to handle the event streams. In the constructor you can add all dependencies, that you set up the DI-Container with.
+
+### 6. Inject and use `IPipelineBuilder`
 
 ```csharp
 var pipeline = pipelineBuilder
-    .Configure(builder => builder
+    .ConfigureOptions(builder => builder
         .Add(new MessageFilterPipeOptions(Guid.Empty))
     )
-    .Construct(builder => builder
+    .ConfigurePipeline(builder => builder
         .AddSource(chatMessages)
         .AddStep<LoggerPipe, ChatMessage>()
         .AddStep<MessageFilterPipe, ChatMessage>()
         .AddStep<MessageTransformPipe, IdentifiedChatMessage>()
+        .AddStep(new ConsoleLoggerPipe())
     )
     .Build();
 
@@ -99,9 +133,16 @@ pipeline.Subscribe(m =>
 );
 ```
 
+Here you can add Options-Instances, that were not added to the global DI-Container. The PipelineBuilder clones the global DI-Container and adds all Options-Instances to it. With them you are able to explitly configure your Pipes for certain usecases and you can use the same Pipe with different configurations.
+
+First, you need to add the source of the Pipeline with `AddSource()`.
+After that, you can add your `IPipe`s as generics, where you also have to specify the type of the output. This way it will be built, using Dependency Injection.
+
+Alternatively, you can add an instance and do not need to specify generic type arguments.
+
 ## Configuration
 
-As the PipelineBuilder uses Dependency-Injection, you can add Configuration-Objects to the builders ServiceCollection, by calling `Configure()`. The type, that you add to the ConfigurationBuilder should be unique, so that it can be injected into the correct pipe.
+As the PipelineBuilder uses Dependency-Injection, you can add Options-Instances to the builders ServiceCollection, by calling `Configure()`. The type, that you add to the ConfigurationBuilder should be unique, so that it can be injected into the correct pipe.
 
 ```csharp
 internal record MessageFilterPipeOptions(Guid ReceiverId);
@@ -120,3 +161,8 @@ pipelineBuilder
         .Add(new MessageFilterPipeOptions(Guid.Empty))
     );
 ```
+
+## Types to use
+
+- `IPipe<TIn,TOut>`: Pipe Interface with ingoing and outgoing IObservable Stream
+- `IPipelineBuilder`: Builder, to set up a Pipeline with Configurations, a Source and multiple Pipes.
