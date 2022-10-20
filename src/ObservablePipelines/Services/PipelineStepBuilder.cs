@@ -14,7 +14,7 @@ namespace ObservablePipelines.Services
             IObservable<TIn> source,
             IServiceCollection serviceCollection
         ) {
-            this.Source = source
+            Source = source
                 ?? throw new ArgumentNullException(nameof(source));
             this.serviceCollection = serviceCollection
                 ?? throw new ArgumentNullException(nameof(serviceCollection));
@@ -32,5 +32,8 @@ namespace ObservablePipelines.Services
 
             return new PipelineStepBuilder<TOut>(Source.Pipe(pipe), serviceCollection);
         }
+
+        public IPipelineStepBuilder<TOut> AddStep<TOut>(Func<IObservable<TIn>, IObservable<TOut>> resultFactory)
+            => new PipelineStepBuilder<TOut>(Source.Pipe(resultFactory), serviceCollection);
     }
 }
