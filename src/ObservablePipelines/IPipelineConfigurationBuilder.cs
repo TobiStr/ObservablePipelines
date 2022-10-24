@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 
 namespace ObservablePipelines
 {
@@ -8,7 +7,7 @@ namespace ObservablePipelines
         IPipelineConfigurationBuilder Add<TConfiguration>(TConfiguration configuration) where TConfiguration : class;
 
         IPipelineConfigurationBuilder Add<TConfiguration>(
-            Func<IServiceCollection, TConfiguration> configurationFactory
+            Func<IServiceProvider, TConfiguration> configurationFactory
         ) where TConfiguration : class;
     }
 }

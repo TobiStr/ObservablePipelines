@@ -19,7 +19,7 @@ namespace ObservablePipelines.Services
         }
 
         public IPipelineConfigurationBuilder Add<TConfiguration>(
-            Func<IServiceCollection, TConfiguration> configurationFactory
+            Func<IServiceProvider, TConfiguration> configurationFactory
         ) where TConfiguration : class {
             services.AddSingleton(configurationFactory);
             return this;
