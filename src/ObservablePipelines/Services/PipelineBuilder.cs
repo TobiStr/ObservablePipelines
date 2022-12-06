@@ -4,13 +4,33 @@ using System;
 
 namespace ObservablePipelines.Services
 {
+    internal class PipelineBuilderOptions
+    {
+        public bool CloneServiceCollection { get; }
+
+        public PipelineBuilderOptions(bool cloneServiceCollection) {
+            CloneServiceCollection = cloneServiceCollection;
+        }
+    }
+
     internal class PipelineBuilder : IPipelineBuilder
     {
         private readonly IServiceCollection serviceCollection;
 
-        public PipelineBuilder(IServiceCollection serviceCollection) {
-            this.serviceCollection = serviceCollection?.Clone()
-                ?? throw new ArgumentNullException(nameof(serviceCollection));
+        private readonly PipelineBuilderOptions pipelineBuilderOptions;
+
+        public PipelineBuilder(IServiceCollection serviceCollection, PipelineBuilderOptions pipelineBuilderOptions) {
+            if (serviceCollection is null)
+                throw new ArgumentNullException(nameof(serviceCollection));
+            this.pipelineBuilderOptions = pipelineBuilderOptions
+                ?? throw new ArgumentNullException(nameof(pipelineBuilderOptions));
+
+            if (pipelineBuilderOptions.CloneServiceCollection) {
+                this.serviceCollection = serviceCollection?.Clone();
+            }
+            else {
+                this.serviceCollection = serviceCollection;
+            }
         }
 
         public IPipelineBuilder ConfigureOptions(
@@ -20,7 +40,7 @@ namespace ObservablePipelines.Services
 
             configure(configurationBuilder);
 
-            return new PipelineBuilder(serviceCollection);
+            return new PipelineBuilder(serviceCollection, pipelineBuilderOptions);
         }
 
         public IPipelineBuilder<TOut> ConfigurePipeline<TOut>(
