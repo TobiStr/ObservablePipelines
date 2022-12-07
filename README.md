@@ -166,3 +166,7 @@ pipelineBuilder
 
 - `IPipe<TIn,TOut>`: Pipe Interface with ingoing and outgoing IObservable Stream
 - `IPipelineBuilder`: Builder, to set up a Pipeline with Configurations, a Source and multiple Pipes.
+
+## Warning about Singleton Injection
+
+If you are injecting a singleton service, make sure to build the singleton service prior to building a pipeline. As the PipelineBuilder is manipulating the IServiceCollection AFTER the main IServiceProvider has been built, the original IServiceProvider will not get the same singleton instance as the pipeline.
