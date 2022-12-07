@@ -4,33 +4,23 @@ using System;
 
 namespace ObservablePipelines.Services
 {
-    internal class PipelineBuilderOptions
-    {
-        public bool CloneServiceCollection { get; }
-
-        public PipelineBuilderOptions(bool cloneServiceCollection) {
-            CloneServiceCollection = cloneServiceCollection;
-        }
-    }
-
     internal class PipelineBuilder : IPipelineBuilder
     {
         private readonly IServiceCollection serviceCollection;
 
-        private readonly PipelineBuilderOptions pipelineBuilderOptions;
-
-        public PipelineBuilder(IServiceCollection serviceCollection, PipelineBuilderOptions pipelineBuilderOptions) {
+        public PipelineBuilder(IServiceCollection serviceCollection, IServiceProvider serviceProvider) {
             if (serviceCollection is null)
                 throw new ArgumentNullException(nameof(serviceCollection));
-            this.pipelineBuilderOptions = pipelineBuilderOptions
-                ?? throw new ArgumentNullException(nameof(pipelineBuilderOptions));
 
-            if (pipelineBuilderOptions.CloneServiceCollection) {
-                this.serviceCollection = serviceCollection?.Clone();
-            }
-            else {
-                this.serviceCollection = serviceCollection;
-            }
+            this.serviceCollection = serviceCollection.Clone();
+            //this.serviceCollection.AddSingleton(serviceProvider);
+        }
+
+        private PipelineBuilder(IServiceCollection serviceCollection) {
+            if (serviceCollection is null)
+                throw new ArgumentNullException(nameof(serviceCollection));
+
+            this.serviceCollection = serviceCollection;
         }
 
         public IPipelineBuilder ConfigureOptions(
@@ -40,7 +30,7 @@ namespace ObservablePipelines.Services
 
             configure(configurationBuilder);
 
-            return new PipelineBuilder(serviceCollection, pipelineBuilderOptions);
+            return new PipelineBuilder(serviceCollection);
         }
 
         public IPipelineBuilder<TOut> ConfigurePipeline<TOut>(
