@@ -14,3 +14,12 @@ internal record IdentifiedChatMessage(
     string SenderName,
     DateTime SendDate
 );
+
+internal class TestContainer
+{
+    public int Number { get; set; }
+
+    public TestContainer(int number) {
+        Number = number;
+    }
+}

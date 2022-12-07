@@ -21,6 +21,8 @@ namespace ObservablePipelines.Test.ShowCase
 
         private IObservable<ChatMessage> chatMessages;
 
+        private IServiceProvider serviceProvider;
+
         private ILogger<ShowCase> logger;
 
         [SetUp]
@@ -29,7 +31,7 @@ namespace ObservablePipelines.Test.ShowCase
 
             ConfigureServices(services);
 
-            var serviceProvider = services
+            serviceProvider = services
                 .BuildServiceProvider();
 
             pipelineBuilder = serviceProvider
@@ -54,11 +56,14 @@ namespace ObservablePipelines.Test.ShowCase
             services
                 .AddObservablePipelines()
                 .AddTransient(_ => userRepositoryMock.Object)
+                .AddSingleton(new TestContainer(5))
                 ;
         }
 
         [Test]
         public async Task TestShowCase() {
+            await Task.Yield();
+
             var pipeline = pipelineBuilder
                 .ConfigureOptions(builder => builder
                     .Add(new MessageFilterPipeOptions(Guid.Empty))
@@ -88,6 +93,37 @@ namespace ObservablePipelines.Test.ShowCase
             //Pipes.MessageFilterPipe: Information: Filter let message: 'How are you?' pass through.
             //Pipes.MessageTransformPipe: Information: Identified sender: 'TestSender'.
             //ShowCase: Information: New Message from 'TestSender': How are you?.
+        }
+
+        [Test]
+        public async Task SingletonNotDuplicatedTest() {
+            await Task.Yield();
+
+            var container = serviceProvider.GetRequiredService<TestContainer>();
+
+            Assert.That(container.Number == 5);
+
+            var pipeline = pipelineBuilder
+                .ConfigureOptions(builder => builder
+                    .Add(new MessageFilterPipeOptions(Guid.Empty))
+                )
+                .ConfigurePipeline(builder => builder
+                    .AddSource(chatMessages)
+                    .AddStep<LoggerPipe, ChatMessage>()
+                    .AddStep<ContainerTransformPipe, ChatMessage>()
+                    .AddStep<MessageFilterPipe, ChatMessage>()
+                    .AddStep<MessageTransformPipe, IdentifiedChatMessage>()
+                    .AddStep(new ConsoleLoggerPipe())
+                )
+                .Build();
+
+            pipeline.Subscribe(m =>
+                logger.LogInformation($"New Message from {m.SenderName}: {m.Message}.")
+            );
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            Assert.That(container.Number == 2);
         }
 
         private IEnumerable<ChatMessage> GetTestMessages() {
