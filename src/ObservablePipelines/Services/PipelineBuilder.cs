@@ -8,19 +8,11 @@ namespace ObservablePipelines.Services
     {
         private readonly IServiceCollection serviceCollection;
 
-        public PipelineBuilder(IServiceCollection serviceCollection, IServiceProvider serviceProvider) {
+        public PipelineBuilder(IServiceCollection serviceCollection) {
             if (serviceCollection is null)
                 throw new ArgumentNullException(nameof(serviceCollection));
 
             this.serviceCollection = serviceCollection.Clone();
-            //this.serviceCollection.AddSingleton(serviceProvider);
-        }
-
-        private PipelineBuilder(IServiceCollection serviceCollection) {
-            if (serviceCollection is null)
-                throw new ArgumentNullException(nameof(serviceCollection));
-
-            this.serviceCollection = serviceCollection;
         }
 
         public IPipelineBuilder ConfigureOptions(
