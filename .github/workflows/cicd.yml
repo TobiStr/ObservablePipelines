@@ -1,53 +1,89 @@
-name: CI
+name: Build, Test, and Deploy NuGet Package
 
 on:
-  create:
-    branches: 
-      - release/**
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
-    
+      - main
+  workflow_dispatch:
+
 jobs:
   build:
-
-    env:
-      BUILD_CONFIG: 'Release'
-      SOLUTION: 'ObservablePipelines.sln'
-
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Get Build Version
-      run: |
-        Import-Module .\.github\build\GetBuildVersion.psm1
-        Write-Host $Env:GITHUB_REF
-        $version = GetBuildVersion -VersionString $Env:GITHUB_REF
-        echo "BUILD_VERSION=$version" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-      shell: pwsh
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.0.x
 
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.5
+      - name: Install dependencies
+        run: dotnet restore
 
-    - name: Restore dependencies
-      run: nuget restore $SOLUTION
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
 
-    - name: Build
-      run: dotnet build $SOLUTION --configuration $BUILD_CONFIG -p:Version=$BUILD_VERSION --no-restore
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: true
 
-    - name: Run tests
-      run: dotnet test /p:Configuration=$BUILD_CONFIG --no-restore --no-build --verbosity normal
-      
-    - name: Publish
-      if: startsWith(github.ref, 'refs/heads/release')
-      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+  deploy:
+    name: Publish to NuGet
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch full history to access tags
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 || echo "1.0.0")
+          PATCH=$(echo "$VERSION" | awk -F. '{print $3}')
+          NEW_PATCH=$((PATCH+1))
+          NEW_VERSION=$(echo "$VERSION" | awk -F. '{print $1"."$2}')".$NEW_PATCH"
+          echo "version=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Generated version: $NEW_VERSION"
+
+      - name: Update NuGet version
+        run: |
+          sed -i "s/<PackageVersion>.*<\/PackageVersion>/<PackageVersion>${{ env.version }}<\/PackageVersion>/g" src/ObservablePipelines/ObservablePipelines.csproj
+
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Pack NuGet package
+        run: dotnet pack src/ObservablePipelines/ObservablePipelines.csproj --configuration Release --output ./nupkg
+
+      - name: Create and push new Git tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ env.version }}
+          git push origin ${{ env.version }}
+
+      - name: Push NuGet package
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push "./nupkg/*.nupkg" --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
