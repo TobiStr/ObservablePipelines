@@ -1,6 +1,22 @@
 # ObservablePipelines
 
+[![NuGet](https://img.shields.io/nuget/dt/ObservablePipelines)](https://www.nuget.org/packages/ObservablePipelines)
+[![NuGet](https://img.shields.io/nuget/vpre/ObservablePipelines)](https://www.nuget.org/packages/ObservablePipelines)
+
 A simple .NET package to achieve a clean pipeline architecture with Observables and injectable pipes.
+
+### Installing ObservablePipelines
+
+You should install [ObservablePipelines with NuGet](https://www.nuget.org/packages/ObservablePipelines):
+
+    Install-Package ObservablePipelines
+
+Or via the .NET Core command line interface:
+
+    dotnet add package ObservablePipelines
+
+Either commands, from Package Manager Console or .NET Core CLI, will download and install ObservablePipelines.
+ObservablePipelines is compatible with .NET 4.6.1+, NET Standard, NET Core and all .NET versions above.
 
 ## When to use
 
